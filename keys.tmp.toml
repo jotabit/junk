@@ -1,0 +1,398 @@
+[header]
+name = "keys"
+version = "0.1.0"
+
+[[mode]]
+name = "insert"
+whenNoBinding = "insertCharacters"
+
+[[mode]]
+name = "normal"
+default = true
+highlight = "Highlight"
+cursorShape = "Block"
+
+[[mode]]
+name = "selection"
+highlight = "Highlight"
+cursorShape = "BlockOutline"
+
+[[mode]]
+name = "view"
+cursorShape = "Block"
+
+[[mode]]
+name = "nav"
+cursorShape = "Block"
+
+[[define.val]]
+select = false
+
+[[kind]]
+name = "motion"
+description = "These commands move the cursor and/or selections."
+
+[[kind]]
+name = "action"
+description = """
+Actions do something with the selected text. Unless otherwise noted, in the absence of a selection, an action will modify an entire line, and a count argument indicates the number of lines (e.g. 3d deletes this line and the next 3 lines
+"""
+
+[[kind]]
+name = "util"
+description = """
+Assorted other commands that aren't motions or actions
+"""
+
+[[define.command]]
+id = "selectionLinesDown"
+command = "runCommands"
+args.commands = [
+    "selection-utilities.shrinkToActive",
+    { skipWhen = "{{key.count <= 0}}", command = "cursorMove", args = { to = "down", by = "wrappedLine", select = true, value = "{{key.count}}"}},
+    "expandSelection",
+    "selection-utilities.exchangeAnchorActive",
+]
+
+[[define.command]]
+id = "selectionLinesUp"
+command = "runCommands"
+args.commands = [
+    "selection-utilities.shrinkToActive",
+    { skipWhen = "{{key.count <= 0}}", command = "cursorMove", args = { to = "up", by = "wrappedLine", select = true, value = "{{key.count}}"}},
+    "expandSelection",
+]
+
+[[define.bind]]
+id = "modes"
+doc.kind = "util"
+
+## ### Getting Help
+
+## There are three kinds of help available in Master Key:
+
+[[bind]]
+default = "{{bind.util}}"
+key = "shift+;"
+doc.name = "suggest"
+finalKey = false
+prefixes.any = true
+mode = '{{not_modes(["insert"])}}'
+doc.description = """
+show command suggestions within the context of the current mode and keybinding prefix
+(if any). E.g. `TAB, ⇧;` in `normal` mode will show all `normal` command suggestions that
+start with `TAB`.
+"""
+command = "master-key.toggleSuggestions"
+
+[[bind]]
+key = "ctrl+shift+/"
+doc.name = "visual doc"
+priority = -1
+mode = "normal"
+doc.description = "Show visual documentation for keybindings"
+command = "master-key.showVisualDoc"
+
+## ## Essential Commands
+
+## Larkin has a core set of commands that should be familiar to users of Helix or Vim.
+
+## ### Normal Mode
+
+## The default mode in Larkin is Normal mode. In this mode, instead of the keys entering text, all keys are commands that modify selections or perform actions on those selections. To exit normal mode you can use `i` to enter `insert` mode, which returns VSCode keybindings to their normal state (see [Simple actions](#simple-actions) for more ways to enter insert mode).
+
+## While in Normal model you will see a highlighted section with the text "normal" in the lower left hand corner of the status 
+
+[[bind]]
+default = "{{bind.modes}}"
+doc.name = "normal"
+doc.description = "Enter normal mode"
+foreach.key = ["escape"]
+doc.combined.key = "escape"
+doc.combined.name = "normal"
+doc.combined.description = "Enter normal mode"
+key = "{{key}}"
+mode = '{{all_modes() + ["capture"]}}'
+command = "master-key.enterNormal"
+when = "!findWidgetVisible"
+prefixes.any = true
+
+[[bind]]
+default = "{{bind.modes}}"
+doc.name = "normal"
+foreach.key = ["escape"]
+key = "{{key}}"
+doc.hideInPalette = true
+doc.hideInDocs = true
+when = "suggestWidgetVisible && editorTextFocus && !findWidgetVisible"
+command = "runCommands"
+args.commands = ["hideSuggestWidget", "master-key.enterNormal"]
+mode = "{{all_modes()}}"
+prefixes.any = true
+
+[[define.bind]]
+id = "edit"
+when = "editorTextFocus && !findWidgetVisible"
+mode = "normal"
+
+[[define.bind]]
+id = "edit_count"
+default = "{{bind.edit}}"
+doc.kind = "count"
+
+## ### Simple motions
+
+## These are the simplest motions that can be performed in Larkin.
+
+[[define.bind]]
+id = "edit_motion"
+default = "{{bind.edit}}"
+doc.kind = "motion"
+tags = ["motion"]
+
+[[define.bind]]
+id = "edit_motion_prim"
+default = "{{bind.edit_motion}}"
+command = "cursorMove"
+args.value = "{{key.count}}"
+
+[[bind]]
+default = "{{bind.edit_motion_prim}}"
+key = "j"
+doc.name = "←"
+doc.combined.name = "←/→"
+doc.combined.key = "j/l"
+doc.combined.description = "move left/right"
+doc.description = "move left"
+args.to = "left"
+mode = "normal"
+args.select = false
+
+[[bind]]
+default = "{{bind.edit_motion_prim}}"
+key = "l"
+doc.combined.name = "←/→"
+doc.name = "→"
+doc.description = "move right"
+args.to = "right"
+args.select = false
+
+[[bind]]
+default = "{{bind.edit_motion_prim}}"
+key = "k"
+doc.name = "↓"
+doc.combined.name = "↓/↑"
+doc.combined.key = "k/i"
+doc.combined.description = "move down/up"
+doc.description = "move down"
+args.to = "down"
+args.by = "wrappedLine"
+args.select = false
+
+[[bind]]
+default = "{{bind.edit_motion_prim}}"
+key = "i"
+doc.name = "↑"
+doc.description = "move up"
+doc.combined.name = "↓/↑"
+args.to = "up"
+args.by = "wrappedLine"
+args.select = false
+
+[[bind]]
+default = "{{bind.edit_motion_prim}}"
+key = "shift+j"
+doc.name = "←"
+doc.combined.name = "←/→"
+doc.combined.key = "shift+j/shift+l"
+doc.combined.description = "move left/right"
+doc.description = "move left"
+args.to = "left"
+mode = "normal"
+args.select = true
+
+[[bind]]
+default = "{{bind.edit_motion_prim}}"
+key = "shift+l"
+doc.combined.name = "←/→"
+doc.name = "→"
+doc.description = "move right"
+args.to = "right"
+args.select = true
+
+[[bind]]
+default = "{{bind.edit_motion_prim}}"
+key = "shift+k"
+doc.name = "↓"
+doc.combined.name = "↓/↑"
+doc.combined.key = "shift+k/shift+i"
+doc.combined.description = "move down/up"
+doc.description = "move down"
+args.to = "down"
+args.by = "wrappedLine"
+args.select = true
+
+[[bind]]
+default = "{{bind.edit_motion_prim}}"
+key = "shift+i"
+doc.name = "↑"
+doc.description = "move up"
+doc.combined.name = "↓/↑"
+args.to = "up"
+args.by = "wrappedLine"
+args.select = true
+
+## Like VIM, the number keys (0-9) can be typed as a prefix to most commands and serve as a `count` argument to that command. In most cases this causes the command to be repeated `count` times e.g. 10j moves ten lines down.
+
+[[bind]]
+foreach.num = ['{{keys(`[0-9]`)}}']
+doc.name = "count {{num}}"
+key = "{{num}}"
+command = "master-key.updateCount"
+doc.description = "Add digit {{num}} to the count argument of a command"
+doc.combined.key = "0-9"
+doc.combined.name = "count 0-9"
+doc.combined.description = "Add digit 0-9 to count argument of a command"
+args.value = "{{num}}"
+finalKey = false
+mode = '{{not_modes(["insert"])}}'
+
+## ### Simple Actions
+
+[[define.bind]]
+id = "edit_action"
+doc.kind = "action"
+mode = "normal"
+tags = ["action"]
+
+[[bind]]
+default = "{{bind.edit_action}}"
+key = "i"
+doc.name = "insert"
+doc.description = "Insert mode before cursor"
+command = "runCommands"
+args.commands = ["selection-utilities.shrinkToActive", "master-key.enterInsert"]
+mode = '{{["normal", "selectedit", "syminsert"]}}'
+
+[[bind]]
+default = "{{bind.edit_action}}"
+doc.name = "delete"
+doc.description = "Delete selected text"
+key = "d"
+command = "deleteRight"
+
+## ### Repeating Motions and Actions
+
+## There are a few ways to make repetitive motions and actions easier.
+
+[[bind]]
+default = "{{bind.edit_motion}}"
+key = ";"
+doc.name = "repeat motion"
+doc.description = """
+Repeat the last motion command. Motions usually move the cursor or change the selection.
+"""
+repeat = "{{key.count}}"
+command = "master-key.replayFromHistory"
+args.index = """{{
+last_history_index(|i| {
+    (history[i]?.tags?.contains("motion") ?? false) &&
+    (history[i]?.doc?.name != "repeat motion" ?? false) &&
+    (history[i]?.doc?.name != "shrink selection" ?? false)
+})
+}}"""
+
+[[bind]]
+default = "{{bind.edit_motion}}"
+doc.name = "repeat subject"
+doc.description = """
+Repeat the subject: a motion command that occurred right before an action. For
+instance `w` followed by `d` selects a word and deletes it. The `w` command would be the
+last subject until some new action is run. See also `.` which repeats the last action.
+"""
+key = ","
+command = "master-key.replayFromHistory"
+args.index = """{{
+last_history_index(|i| {
+    (history[i]?.tags?.contains("motion") ?? false) &&
+    (history[i+1]?.tags?.contains("action") ?? false) &&
+    !((history[i+1]?.doc?.name?.starts_with("repeat") ?? false) &&
+      (history[i+1]?.tags?.contains("history") ?? false))
+})
+}}"""
+
+[[bind]]
+default = "{{bind.edit_action_history}}"
+doc.name = "repeat action"
+doc.description = """
+Repeat the last action command. Actions usually modify the text of a document in one way or
+another. (But, e.g. sending text to the REPL is also considered an editor action).
+See also `,` which repeats the last "subject" of an action (the selection preceding an action).
+"""
+key = "."
+command = "runCommands"
+repeat = "{{key.count}}"
+
+[[bind.args.commands]]
+command = "master-key.replayFromHistory"
+# we can repeat any action but history-related actions; we make an exception for replaying macros, which can be repeated
+args.index = """{{
+last_history_index(|i|
+    history[i]?.tags.contains("action") &&
+    !(history[i]?.tags.contains("history") && history[i]?.doc.name != "replay")
+)}}"""
+
+[[bind.args.commands]]
+command = "master-key.enterNormal"
+
+[[bind]]
+default = "{{bind.edit_action_history}}"
+doc.name = "repeat command"
+doc.description = """
+Repeat the last command, whatever it was. Also see `repeat action`.
+"""
+key = "ctrl+."
+command = "runCommands"
+repeat = "{{key.count}}"
+
+[[bind.args.commands]]
+command = "master-key.replayFromHistory"
+args.index = """{{last_history_index(|i|
+    !(history[i]?.tags.contains("history") && history[i]?.doc.name != "replay")
+)}}"""
+
+[[bind.args.commands]]
+command = "master-key.enterNormal"
+
+## ### Standard Motions
+
+## These are relatively common motions that compliment the [Basic Motions](#basic-motions).
+
+## Selection behavior uses the following logic: motions that move more than one character generally select the text "under" the motion. If a selection already exists (e.g. from a previous motion) additional motions extend that selection. You can always reset the selection using `v`, and several commands (e.g. `x`) operate on the next character rather than the current selection.
+
+[[bind]]
+default = "{{bind.edit_motion_prim}}"
+key = "ctrl+d"
+mode = ["normal", "insert"]
+doc.name = "pg ↓"
+doc.combined.name = "pg ↓/↑"
+doc.combined.key = "ctrl+d/ctrl+u"
+doc.combined.description = "select down/up, relative to page size"
+doc.description = "select down, relative to page size"
+command = "selection-utilities.activePageMove"
+args.dir = "down"
+args.count = "{{max(key.count, 1)/3}}"
+args.select = '{{key.mode == "normal"}}'
+
+[[bind]]
+default = "{{bind.edit_motion_prim}}"
+key = "ctrl+u"
+mode = ["normal", "insert"]
+doc.name = "pg ↑"
+doc.combined.name = "pg ↓/↑"
+doc.description = "select up, relative to page size"
+command = "selection-utilities.activePageMove"
+args.dir = "up"
+args.count = "{{(max(key.count, 1))/3}}"
+args.select = '{{key.mode == "normal"}}'
+
